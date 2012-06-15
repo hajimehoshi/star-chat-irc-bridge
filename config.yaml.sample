@@ -1,0 +1,20 @@
+daemonized: false
+irc_server:
+  host: irc.example.com
+  port: 6667
+irc_user:
+  nick: SCBridge
+  user: StarChat_Bridge
+  real: foo@example.com
+star_chat_server:
+  host: chat.example.com
+  port: 80
+star_chat_user:
+  name: foo
+  nick: IRC_Gateway
+  pass: foo.pass
+channels:
+  - irc: '#lobby'
+    star_chat: Lobby
+  - irc: '#StarChat'
+    star_chat: StarChat
