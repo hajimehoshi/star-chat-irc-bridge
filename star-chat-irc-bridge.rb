@@ -95,7 +95,12 @@ class StarChatClient
                   body.split(/\n/).select do |line|
                     !line.empty?
                   end.map do |line|
-                    JSON.parse(line)
+                    begin
+                      JSON.parse(line)
+                    rescue JSON::ParserError
+                      puts("JSON::ParserError!: #{line}")
+                      nil
+                    end
                   end.each do |packet|
                     next unless packet
                     next if packet['type'] != 'message'
