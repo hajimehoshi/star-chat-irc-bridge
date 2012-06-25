@@ -202,7 +202,7 @@ class StarChatIRCBridge < Net::IRC::Client
     irc_ch, irc_message = *m
     irc_nick = /^(.+?)\!/.match(m.prefix)[1]
     pair = $config['channels'].select{|pair|
-      pair['irc'] == irc_ch
+      pair['irc'].downcase == irc_ch.downcase
     }.first
     return [nil, nil, nil] unless pair
     star_chat_ch = pair['star_chat']
