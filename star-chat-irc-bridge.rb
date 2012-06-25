@@ -208,7 +208,9 @@ class StarChatIRCBridge < Net::IRC::Client
     star_chat_ch = pair['star_chat']
     return unless star_chat_ch
     body = "(#{irc_nick}) #{irc_message}"
-    [irc_nick, star_chat_ch, body]
+    [irc_nick, star_chat_ch, body].map do |str|
+      str.force_encoding('utf-8')
+    end
   end
   private :to_star_chat_msg
 
@@ -218,9 +220,6 @@ class StarChatIRCBridge < Net::IRC::Client
     return unless irc_nick
     return unless star_chat_ch
     return unless body
-    irc_nick     = irc_nick.force_encoding('utf-8')
-    star_chat_ch = star_chat_ch.force_encoding('utf-8')
-    body         = body.force_encoding('utf-8')
     return if irc_nick == $config['irc_user']['nick']
     @star_chat_client.post_message(star_chat_ch, body)
   end
@@ -231,9 +230,6 @@ class StarChatIRCBridge < Net::IRC::Client
     return unless irc_nick
     return unless star_chat_ch
     return unless body
-    irc_nick     = irc_nick.force_encoding('utf-8')
-    star_chat_ch = star_chat_ch.force_encoding('utf-8')
-    body         = body.force_encoding('utf-8')
     return if irc_nick == $config['irc_user']['nick']
     @star_chat_client.post_message(star_chat_ch, body, true)
   end
