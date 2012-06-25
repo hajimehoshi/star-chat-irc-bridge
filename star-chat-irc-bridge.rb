@@ -61,6 +61,12 @@ end
 
 class StarChatClient
 
+  def check_response(res)
+    return true if res.code == '409'
+    return false if res.code.to_i / 100 != 2
+    true
+  end
+
   def check_response!(res)
     return if res.code == '409'
     raise res.message if res.code.to_i / 100 != 2
@@ -111,9 +117,12 @@ class StarChatClient
                       pair['star_chat'] == message['channel_name']
                     }.first
                     next unless pair
-                    irc_ch = pair['irc']
-                    body   = "(#{message['user_name']}) #{message['body']}"
+                    irc_ch = pair['irc'].force_encoding('utf-8')
+                    name = message['user_name'].force_encoding('utf-8')
+                    name_with_spaces = name.split(//).join("\ufeff")
+                    body   = "(#{name_with_spaces}) #{message['body'].force_encoding('utf-8')}"
                     notice = (message['notice'] || false)
+                    puts "Request: #{irc_ch}, #{body}"
                     irc_client.request_post_message(irc_ch, body, notice)
                   end
                 end
@@ -137,6 +146,7 @@ class StarChatClient
   end
 
   def put_subscribing(channel_name)
+    return unless channel_name.valid_encoding?
     res = Net::HTTP.start(@host, @port) do |http|
       req = Net::HTTP::Put.new('/subscribings')
       req.basic_auth(@name, @pass)
@@ -144,10 +154,14 @@ class StarChatClient
                         user_name:    @name)
       http.request(req)
     end
-    check_response!(res)
+    unless check_response(res)
+      puts res.message
+    end
   end
 
   def post_message(channel_name, body, notice = false)
+    return unless channel_name.valid_encoding?
+    return unless body.valid_encoding?
     url = '/channels/' + URI.encode_www_form_component(channel_name) + '/messages'
     res = Net::HTTP.start(@host, @port) do |http|
       req = Net::HTTP::Post.new(url)
@@ -157,7 +171,9 @@ class StarChatClient
                         notice: 'true')
       http.request(req)
     end
-    check_response!(res)
+    unless check_response(res)
+      puts res.message
+    end
   end
 
 end
@@ -202,6 +218,9 @@ class StarChatIRCBridge < Net::IRC::Client
     return unless irc_nick
     return unless star_chat_ch
     return unless body
+    irc_nick     = irc_nick.force_encoding('utf-8')
+    star_chat_ch = star_chat_ch.force_encoding('utf-8')
+    body         = body.force_encoding('utf-8')
     return if irc_nick == $config['irc_user']['nick']
     @star_chat_client.post_message(star_chat_ch, body)
   end
@@ -212,6 +231,9 @@ class StarChatIRCBridge < Net::IRC::Client
     return unless irc_nick
     return unless star_chat_ch
     return unless body
+    irc_nick     = irc_nick.force_encoding('utf-8')
+    star_chat_ch = star_chat_ch.force_encoding('utf-8')
+    body         = body.force_encoding('utf-8')
     return if irc_nick == $config['irc_user']['nick']
     @star_chat_client.post_message(star_chat_ch, body, true)
   end
@@ -225,7 +247,7 @@ class StarChatIRCBridge < Net::IRC::Client
         irc_ch = request[:irc_ch]
         body   = request[:body]
         notice = request[:notice] # ignore!
-        post(NOTICE, irc_ch, body)
+        post(notice ? NOTICE : PRIVMSG, irc_ch, body)
       end
     end
   end
