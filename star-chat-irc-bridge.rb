@@ -50,8 +50,7 @@ class Net::IRC::Client
   end
 end
 
-
-$config = open('config.yaml') do |io|
+$config = open(ARGV[0] ? ARGV[0] : 'config.yaml') do |io|
   YAML.load(io)
 end
 
