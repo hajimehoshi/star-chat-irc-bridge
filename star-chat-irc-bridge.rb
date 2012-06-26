@@ -158,7 +158,7 @@ class StarChatClient
     end
   end
 
-  def post_message(channel_name, body, notice = false)
+  def post_message(channel_name, irc_nick, body, notice = false)
     return unless channel_name.valid_encoding?
     return unless body.valid_encoding?
     url = '/channels/' + URI.encode_www_form_component(channel_name) + '/messages'
@@ -166,8 +166,9 @@ class StarChatClient
       req = Net::HTTP::Post.new(url)
       req.basic_auth(@name, @pass)
       # The argumennt notice is ignored now.
-      req.set_form_data(body:   body,
-                        notice: 'true')
+      req.set_form_data(body:           body,
+                        notice:         notice ? 'true' : 'false',
+                        temporary_nick: irc_nick)
       http.request(req)
     end
     unless check_response(res)
@@ -206,7 +207,7 @@ class StarChatIRCBridge < Net::IRC::Client
     return [nil, nil, nil] unless pair
     star_chat_ch = pair['star_chat']
     return unless star_chat_ch
-    body = "(#{irc_nick}) #{irc_message}"
+    body = irc_message
     [irc_nick, star_chat_ch, body].map do |str|
       str.force_encoding('utf-8')
     end
@@ -220,7 +221,7 @@ class StarChatIRCBridge < Net::IRC::Client
     return unless star_chat_ch
     return unless body
     return if irc_nick == $config['irc_user']['nick']
-    @star_chat_client.post_message(star_chat_ch, body)
+    @star_chat_client.post_message(star_chat_ch, irc_nick, body)
   end
 
   def on_notice(m)
@@ -230,7 +231,7 @@ class StarChatIRCBridge < Net::IRC::Client
     return unless star_chat_ch
     return unless body
     return if irc_nick == $config['irc_user']['nick']
-    @star_chat_client.post_message(star_chat_ch, body, true)
+    @star_chat_client.post_message(star_chat_ch, irc_nick, body, true)
   end
 
   def on_idle
