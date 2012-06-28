@@ -1,4 +1,5 @@
 daemonized: false
+log_file: /path/to/log.txt
 irc_server:
   host: irc.example.com
   port: 6667

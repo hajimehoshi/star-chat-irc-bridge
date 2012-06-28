@@ -133,6 +133,7 @@ class StarChatClient
           sleep(1)
         end
       rescue Exception => e
+        path = $config['log_file']
         File.open('log.txt', 'a') do |io|
           io.puts(e.message)
           io.puts(e.backtrace.join("\n"))
