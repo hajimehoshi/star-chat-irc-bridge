@@ -166,7 +166,6 @@ class StarChatClient
     res = Net::HTTP.start(@host, @port) do |http|
       req = Net::HTTP::Post.new(url)
       req.basic_auth(@name, @pass)
-      # The argumennt notice is ignored now.
       req.set_form_data(body:           body,
                         notice:         notice ? 'true' : 'false',
                         temporary_nick: irc_nick)
@@ -250,12 +249,16 @@ class StarChatIRCBridge < Net::IRC::Client
   end
 
   def request_post_message(irc_ch, body, notice = false)
-    @requests << {
-      type:   :post_message,
-      irc_ch: irc_ch,
-      body:   body,
-      notice: notice,
-    }
+    i = 0
+    while i < body.length
+      @requests << {
+        type:   :post_message,
+        irc_ch: irc_ch,
+        body:   body[i, 140],
+        notice: notice,
+      }
+      i += 140
+    end
   end
 
 end
